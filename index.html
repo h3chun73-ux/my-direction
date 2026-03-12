@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="utf-8">
-    <title>구성방위학 정밀 분석 시스템 (Master V6.3 - 파살 정밀교정 및 상의 완벽복구판)</title>
+    <title>구성방위학 정밀 분석 시스템 (Master V6.4 - 100% 한글화 및 최종 교정판)</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; display: flex; flex-direction: column; height: 100vh; }
         .header-panel { background-color: #ffffff; padding: 15px; border-bottom: 3px solid #1a237e; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 10; }
@@ -307,7 +307,7 @@
 
                 const branchDir8 = ["북","북동","북동","동","동남","남","남","남서","서","서","서북","서북"];
 
-                // ★ 버그 수정: 정확한 충(파살) 방향 계산 로직 적용 (해당 지지의 반대편 지지)
+                // 완벽한 파살 방위 계산 (충 방위)
                 let yearBranch = (tStars.adjY - 4 + 1200) % 12;
                 let yearPaDir = branchDir8[(yearBranch + 6) % 12];
                 let monthBranch = tStars.adjM % 12;
@@ -393,7 +393,6 @@
                 let isYin = tStars.isYin;
                 
                 for(let i=0; i<12; i++){
-                    // ★ 버그 수정: 시파(Hour Breaker) 흉살 적용
                     let hourBranch = i; 
                     let hourPaDir = branchDir8[(hourBranch + 6) % 12]; 
 
@@ -415,7 +414,6 @@
                         let ts3 = tObj2[dir];
                         let oppTs = tObj2[opposites[dir]];
                         
-                        // 시반 오황, 암검, 본명, 적살 + 시파(Time Breaker) 추가
                         if(ts3===5 || oppTs===5 || ts3===myS || oppTs===myS || dir === hourPaDir){
                             badDirs2.push(dir);
                         } else if(goodEls.includes(ts3) && results[dir].sc >= 50){
@@ -434,7 +432,6 @@
                         let dirDetails = goodDirs2.map(item => {
                             let db = starDB[item.st];
                             let scColor = item.sc >= 90 ? '#0000ff' : (item.sc >= 60 ? '#00838f' : '#e65100');
-                            // ★ 복구 완료: 커피, 와인, 빵 등 식음료 및 개운행동 상세 표시
                             return `<div style="margin:4px 0; padding:4px 0; border-bottom:1px dashed #cbd5e0; font-size:12px;">
                                 <b style="color:#2b6cb0;">[${item.d}방] <span style="color:${scColor};">${item.sc}%</span></b><br>
                                 <span style="color:#444;">📍 <b>장소:</b> ${db.loc}<br>🍽️ <b>식음료:</b> ${db.food}, ${db.drink}<br>🏃 <b>행동:</b> ${db.act}</span>
@@ -475,12 +472,10 @@
                     else badS=r.stars[2];
                     let badDt=starDB[badS];
 
-                    // ★ 버그 수정: 나에게 가장 도움되는 진짜 길성을 자동 추출 (월반 고정 오류 해결)
                     let goodCandidates = r.stars.filter(s => goodEls.includes(s) && s !== 5 && s !== myS);
                     let bestGoodStar = goodCandidates.length > 0 ? goodCandidates[0] : r.stars[1]; 
                     let goodDt = starDB[bestGoodStar];
 
-                    // ★ 복구: 오행 상생상극 통관 로직 (피흉법)
                     let dirStars = [r.stars[0], r.stars[1], r.stars[2]];
                     let dirElements = [...new Set(dirStars.map(s => [1].includes(s)?'수':([2,5,8].includes(s)?'토':([3,4].includes(s)?'목':([6,7].includes(s)?'금':'화')))))];
                     let remedyAdvice = "";
@@ -503,7 +498,6 @@
                         <div class="score-bar-container"><div class="score-bar" style="width:${r.sc}%; background:${cl}"></div></div>`;
 
                     if(r.b.length > 0){
-                        // ★ 복구: 흉살(오황, 암검 등)에 대한 행동 요령 전면 복구
                         let fatalRemedy = "";
                         if (r.b.some(x => x.includes("오황"))) fatalRemedy += "<div style='margin-bottom:8px;'>🔥 <b>[오황살 화해]</b> 만물이 부패하는 극흉의 방향입니다. 흙을 밟거나 파는 행위를 절대 금하고, 날것을 피하며 푹 익힌 음식만 섭취하고 침묵을 지키십시오.</div>";
                         if (r.b.some(x => x.includes("암검"))) fatalRemedy += "<div style='margin-bottom:8px;'>⚔️ <b>[암검살 화해]</b> 타인으로부터 예기치 않은 재난이 강제로 날아옵니다. 철저히 자신을 낮추고 양보하며, 시비나 다툼을 무조건 피하고 철저한 방어 운전을 하십시오.</div>";
@@ -522,7 +516,6 @@
                             </div>
                         </div>`;
                     } else if(r.sc >= 60){
-                        // ★ 복구 완료: 취기법 안내
                         h += `<div class="good-section">
                             <b style="font-size:15px;">✨ 정통 길방 취기법 (${bestGoodStar}성 - ${goodDt.n.split('(')[0]} 기준)</b>
                             <div style="margin: 8px 0;">${goodDt.luck.split(', ').map(l=>`<span class="luck-tag">${l}</span>`).join('')}</div>
@@ -537,7 +530,6 @@
                             <div class="highlight-box">🏃 <b>핵심 행동:</b> ${goodDt.act}</div>
                         </div>`;
                     } else {
-                        // ★ 복구 완료: 오행 피흉법
                         h += `<div class="weak-section"><b>⚠️ 기운 미약:</b> 흉살은 없으나 본명성과 상극인 방위입니다.<div class="remedy-weak-box">🛡️ <b>오행 화해(化解) 피흉법:</b><br>${remedyAdvice}</div></div>`;
                     }
                     h += `</div>`;
