@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>구성방위학 정밀 분석 시스템 (Master V5.2 - 최종 완성본)</title>
+    <title>구성방위학 정밀 분석 시스템 (Master V5.3 - 실시간 위치 연동판)</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; display: flex; flex-direction: column; height: 100vh; }
         .header-panel { background-color: #ffffff; padding: 15px; border-bottom: 3px solid #1a237e; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 10; }
@@ -38,6 +38,7 @@
         .badge { background: #3182ce; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; }
         .luck-tag { display: inline-block; background: #c6f6d5; color: #22543d; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; margin-bottom: 4px; font-weight: bold; border: 1px solid #9ae6b4; }
         .remedy-box { background: #fed7d7; padding: 10px; border-radius: 4px; margin-top: 10px; color: #742a2a; font-weight: bold; border-left: 4px solid #c53030; }
+        .map-label { text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
     </style>
 </head>
 <body>
@@ -45,8 +46,8 @@
         <div class="flex-container">
             <div class="input-group">
                 <label>📍 출발지 설정 (중심점)</label>
-                <input type="text" id="search-address" placeholder="예: 경기도 파주 광탄면">
-                <button class="search-btn" onclick="searchLocation()">지도 위치 이동</button>
+                <input type="text" id="search-address" placeholder="주소를 입력하거나 지도 위 마커를 움직이세요">
+                <button class="search-btn" onclick="searchLocation()">지도 위치 이동 및 재분석</button>
             </div>
             <div class="input-group">
                 <label>👤 내 생년월일시 (자동저장)</label>
@@ -59,13 +60,13 @@
                 <input type="time" id="travel-time" value="12:00">
             </div>
         </div>
-        <button class="main-btn" onclick="analyzeDirection()">정밀 방위 연산 및 취기 상의(象意) 출력</button>
+        <button class="main-btn" onclick="analyzeDirection()">전 우주적 정밀 분석 실행</button>
     </div>
     <div class="main-content">
         <div id="map"></div>
         <div id="result-panel">
             <h4 style="color:#1a237e; margin-top:0;">[데이터 대기 중]</h4>
-            <p>날짜를 확인하고 분석 버튼을 눌러주십시오.</p>
+            <p>날짜를 확인하고 분석 버튼을 눌러주십시오. 주소 검색이나 마커 이동 시 중심축이 자동 변경됩니다.</p>
         </div>
     </div>
 
@@ -88,15 +89,15 @@
         };
 
         const starDB = {
-            1: { n: "1백수성(一白水星)", duration: "3박 4일 이상 (느린 흡수)", luck: "교제운 상승, 비밀 성사, 자식/건강 회복, 치유", loc: "바다, 강, 호수, 수질 좋은 온천, 수족관", food: "생선회, 두부, 맑은 국물, 짠맛 요리", drink: "미네랄 워터, 맑은 곡주, 생수", goodColor: "흰색, 검은색 배합", goodItem: "진주, 수정 팔찌, 투명한 유리병", badColor: "밝은 붉은색", badItem: "검은색 속옷 착용, 은/금속재질 시계 지참 (수생목으로 탁한 기운 배출)", act: "밤 시간대 명상, 온천욕, 마음의 고민 털어내기" },
-            2: { n: "2흑토성(二黑土星)", duration: "2박 3일 이상", luck: "가정 안정, 부동산운, 취업/이직, 끈기 향상", loc: "평야, 시골, 전통시장, 농장, 고향, 오래된 노포", food: "잡곡밥, 발효식품(된장), 고구마, 나물", drink: "곡물차(둥굴레차), 따뜻한 우유", goodColor: "황색, 갈색", goodItem: "도자기 소품, 마 직물 의류", badColor: "짙은 갈색, 황토색", badItem: "가죽 벨트/지갑, 갈색 구두 지참 (토생금으로 흉살 설기)", act: "맨발 걷기(어싱), 전통 시장 건어물 구입" },
-            3: { n: "3벽목성(三碧木星)", duration: "1박 2일 단기 (빠른 발동)", luck: "사업/기획 발전, 젊음/활력, 소리/방송 성공", loc: "숲 우거진 산, 계곡, 폭포, 방송국, 공연장", food: "샐러드, 신맛 과일(레몬), 새싹채소", drink: "감귤류 주스, 탄산수", goodColor: "청색, 밝은 녹색", goodItem: "나무 팔찌, 새 신발, 전자기기", badColor: "짙은 녹색", badItem: "녹색 스카프 착용, 금속 안경테 (목생화로 흉살 기운 분산)", act: "일출 감상, 창문 열고 드라이브, 신나는 음악 듣기" },
-            4: { n: "4록목성(四綠木星)", duration: "2박 3일 (멀리 퍼짐)", luck: "결혼/연애운, 좋은 거래처 확보, 신용 회복", loc: "식물원, 바람 통하는 언덕, 공항, 분위기 좋은 카페", food: "파스타, 우동, 국수(긴 요리), 닭고기", drink: "향기로운 허브차, 꽃차", goodColor: "연녹색, 하늘색", goodItem: "향수, 긴 넥타이/리본, 바람개비", badColor: "하늘색, 청색", badItem: "목에 감는 긴 목걸이, 하늘색 손수건 (흉한 기운을 바람에 날려 보냄)", act: "먼 곳 지인에게 안부 전화, 해안 도로 산책" },
-            5: { n: "5황토성(五黃土星)", duration: "취기 절대 불가", luck: "절대 흉방 (부패, 파괴, 극단적 손실)", loc: "황무지, 폐기장, 공사장, 인적 드문 곳", food: "생식 금지, 익힌 음식", drink: "해독 작용 차", goodColor: "해당 없음", goodItem: "취기 금지", badColor: "노란색, 흙색 (절대 금지)", badItem: "흰색 옷 착용, 화려한 금속 악세서리로 토기(土氣) 완전 억제", act: "도착 즉시 손발을 씻고, 외부 일정을 줄이며 침묵 유지" },
-            6: { n: "6백금성(六白金星)", duration: "1박 2일 (하늘의 권위)", luck: "승진/권위, 귀인(후원자) 조우, 대규모 자금/투자", loc: "대형 사찰, 웅장한 바위산, 관공서, 고급 호텔", food: "고급 한정식, 둥근 과일(사과/멜론)", drink: "고급 명주, 스파클링 워터", goodColor: "백색, 은색, 금색", goodItem: "고급 아날로그 시계, 도장, 거울", badColor: "순백색", badItem: "은색 반지 다수 착용, 흰색 상의 (금생수로 살기를 빼냄)", act: "사찰 참배 및 감사 기도, 전망대 등반, 격식 차리기" },
-            7: { n: "7적금성(七赤金星)", duration: "당일~1박 2일", luck: "여유 금전운, 유희/연애운, 화술 향상, 기쁨", loc: "얕은 계곡, 번화가, 화려한 식당/카페, 은행", food: "치킨 등 닭튀김, 달콤한 디저트, 매운 음식", drink: "달콤한 커피, 칵테일", goodColor: "핑크, 오렌지", goodItem: "소리나는 종, 립스틱, 현금", badColor: "진한 분홍색", badItem: "핑크색 파우치/소품, 화려한 금속제 귀걸이 (흉살을 유희의 기운으로 중화)", act: "카페에서 수다 떨기, 현금 소비, 많이 웃기" },
-            8: { n: "8백토성(八白土星)", duration: "3박 4일 이상 (극적 변화)", luck: "상황의 긍정적 역전, 상속/부동산, 악연 단절", loc: "높은 산, 고층 전망대, 케이블카, 호텔 객실", food: "최고급 소고기, 페이스트리(겹친 음식)", drink: "진한 쌍화차, 단 음료", goodColor: "베이지, 황토색", goodItem: "튼튼한 가죽 가방, 지역의 예쁜 돌", badColor: "베이지, 황토", badItem: "베이지색 모자, 두꺼운 가죽 팔찌 (산의 기운으로 살기를 덮음)", act: "산 정상에서 발 아래 내려다보기, 새로운 인생 계획 세우기" },
-            9: { n: "9자화성(九紫火星)", duration: "당일 집중 (불꽃의 기운)", luck: "미용/예술운, 시험 합격, 선견지명, 명예", loc: "미술관, 도서관, 야경 명소, 미용실, 채광 좋은 곳", food: "갑각류(게/새우), 붉은 살코기, 초콜릿", drink: "레드 와인, 쓴 블랙 커피", goodColor: "적색, 보라색", goodItem: "안경/선글라스, 예술 서적, 조명기구", badColor: "붉은색, 보라색", badItem: "붉은색 넥타이/양말 착용, 안경 반드시 지참 (화생토로 흉운 연소)", act: "미술 작품 감상, 화려한 야경 촬영, 독서/문서 작업" }
+            1: { n: "1백수성(一白水星)", duration: "3박 4일 이상", luck: "교제운 상승, 비밀 성사, 자식/건강 회복, 치유", loc: "바다, 강, 호수, 수질 좋은 온천, 수족관, 유흥주점", food: "생선회, 두부, 맑은 국물, 짠맛 요리", drink: "미네랄 워터, 맑은 곡주, 생수", goodColor: "흰색, 검은색 배합", goodItem: "진주, 수정 팔찌, 투명한 유리병", badColor: "밝은 붉은색", badItem: "검은색 속옷 착용, 금속 시계 지참", act: "밤 시간대 명상, 온천욕, 고민 털어내기" },
+            2: { n: "2흑토성(二黑土星)", duration: "2박 3일 이상", luck: "가정 안정, 부동산운, 취업/이직, 끈기 향상", loc: "평야, 시골, 전통시장, 농장, 고향, 오래된 노포", food: "잡곡밥, 발효식품(된장), 고구마, 나물", drink: "곡물차, 따뜻한 우유", goodColor: "황색, 갈색", goodItem: "도자기 소품, 마 직물 의류", badColor: "짙은 갈색, 황토색", badItem: "가죽 벨트/지갑, 갈색 구두 지참", act: "맨발 걷기(어싱), 전통 시장 방문" },
+            3: { n: "3벽목성(三碧木星)", duration: "1박 2일 단기", luck: "사업/기획 발전, 젊음/활력, 소리/방송 성공", loc: "숲 우거진 산, 계곡, 폭포, 방송국, 공연장", food: "샐러드, 신맛 과일(레몬), 새싹채소", drink: "감귤류 주스, 탄산수", goodColor: "청색, 밝은 녹색", goodItem: "나무 팔찌, 새 신발, 전자기기", badColor: "짙은 녹색", badItem: "녹색 스카프 착용, 금속 안경테", act: "일출 감상, 신나는 음악 듣기" },
+            4: { n: "4록목성(四綠木星)", duration: "2박 3일", luck: "결혼/연애운, 좋은 거래처 확보, 신용 회복", loc: "식물원, 바람 통하는 언덕, 공항, 카페", food: "파스타, 우동, 국수(긴 요리), 닭고기", drink: "향기로운 꽃차", goodColor: "연녹색, 하늘색", goodItem: "향수, 긴 리본/넥타이", badColor: "하늘색, 청색", badItem: "긴 목걸이, 하늘색 손수건", act: "먼 곳 지인에게 연락, 해안 산책" },
+            5: { n: "5황토성(五黃土星)", duration: "취기 절대 불가", luck: "절대 흉방 (부패, 파괴, 극단적 손실)", loc: "황무지, 폐기장, 공사장, 인적 드문 곳", food: "익힌 음식", drink: "해독 작용 차", goodColor: "해당 없음", goodItem: "취기 금지", badColor: "노란색, 흙색 금지", badItem: "흰색 옷, 금속 악세서리 다수", act: "이동 최소화 및 침묵 유지" },
+            6: { n: "6백금성(六白金星)", duration: "1박 2일", luck: "승진/권위, 귀인 조우, 대규모 투자", loc: "대형 사찰, 웅장한 바위산, 관공서, 고급 호텔", food: "고급 한정식, 둥근 과일(사과/멜론)", drink: "고급 명주, 스파클링 워터", goodColor: "백색, 은색, 금색", goodItem: "고급 아날로그 시계, 도장", badColor: "순백색", badItem: "은색 반지 다수, 흰색 상의", act: "사찰 참배 및 기도, 격식 차리기" },
+            7: { n: "7적금성(七赤金星)", duration: "당일~1박 2일", luck: "여유 금전운, 유희/연애운, 화술 향상", loc: "얕은 계곡, 번화가, 화려한 카페, 은행", food: "치킨 등 튀김류, 달콤한 디저트", drink: "달콤한 커피, 칵테일", goodColor: "핑크, 오렌지", goodItem: "작은 종, 화려한 립스틱", badColor: "진한 분홍색", badItem: "핑크색 파우치, 화려한 귀걸이", act: "카페 수다, 현금 소비, 많이 웃기" },
+            8: { n: "8백토성(八白土星)", duration: "3박 4일 이상", luck: "상황의 긍정적 역전, 상속/부동산, 악연 단절", loc: "높은 산, 전망대, 케이블카, 호텔 객실", food: "쇠고기 요리, 페이스트리", drink: "진한 쌍화차, 단 음료", goodColor: "베이지, 황토색", goodItem: "튼튼한 가죽 가방, 지역 돌", badColor: "베이지, 황토", badItem: "베이지색 모자, 가죽 팔찌", act: "전망대 관람, 새로운 계획 세우기" },
+            9: { n: "9자화성(九紫火星)", duration: "당일 집중", luck: "미용/예술운, 시험 합격, 선견지명, 명예", loc: "미술관, 도서관, 야경 명소, 미용실, 채광 좋은 곳", food: "갑각류(게/새우), 붉은 살코기, 초콜릿", drink: "레드 와인, 블랙 커피", goodColor: "적색, 보라색", goodItem: "안경/선글라스, 예술 서적", badColor: "붉은색, 보라색", badItem: "붉은색 양말, 안경 반드시 지참", act: "미술 작품 감상, 문서/일기 작성" }
         };
 
         const posNames = ["중앙", "서북", "서", "북동", "남", "북", "남서", "동", "동남"];
@@ -107,15 +108,10 @@
             initMap();
             const savedBD = localStorage.getItem('masterBirthDate');
             const savedBT = localStorage.getItem('masterBirthTime');
-            
             let today = new Date();
-            let tYear = today.getFullYear();
-            let tMonth = String(today.getMonth() + 1).padStart(2, '0');
-            let tDay = String(today.getDate()).padStart(2, '0');
-            
             if(savedBD) document.getElementById('birth-date').value = savedBD;
             if(savedBT) document.getElementById('birth-time').value = savedBT;
-            document.getElementById('travel-date').value = `${tYear}-${tMonth}-${tDay}`;
+            document.getElementById('travel-date').value = today.toISOString().split('T')[0];
         };
 
         function initMap() {
@@ -123,13 +119,23 @@
             map = new google.maps.Map(document.getElementById('map'), { center: loc, zoom: 7.2, mapTypeId: 'roadmap' });
             centerMarker = new google.maps.Marker({ position: loc, map: map, draggable: true });
             geocoder = new google.maps.Geocoder();
+
+            // 마커 드래그 시 실시간 중심축 업데이트
+            centerMarker.addListener('dragend', function() {
+                analyzeDirection(); 
+            });
         }
 
         function searchLocation() {
             var addr = document.getElementById('search-address').value;
             if(!addr || !geocoder) return;
             geocoder.geocode({ 'address': addr }, function(r, s) {
-                if (s === 'OK') { map.setCenter(r[0].geometry.location); centerMarker.setPosition(r[0].geometry.location); }
+                if (s === 'OK') { 
+                    var newPos = r[0].geometry.location;
+                    map.setCenter(newPos); 
+                    centerMarker.setPosition(newPos);
+                    analyzeDirection(); // 검색과 동시에 즉시 축 이동 및 재분석
+                }
             });
         }
 
@@ -163,7 +169,7 @@
         function analyzeDirection() {
             try {
                 let bStr = document.getElementById('birth-date').value, tStr = document.getElementById('travel-date').value, tTime = document.getElementById('travel-time').value;
-                if(!bStr || !tStr) { alert("날짜 정보가 누락되었습니다."); return; }
+                if(!bStr || !tStr) { alert("날짜 정보를 입력하십시오."); return; }
                 
                 localStorage.setItem('masterBirthDate', bStr);
                 localStorage.setItem('masterBirthTime', document.getElementById('birth-time').value);
@@ -181,25 +187,18 @@
                 posNames.forEach(dir => {
                     if(dir === "중앙") return;
                     let sc = 0, bads = [];
-                    bds.forEach((b, idx) => {
-                        let st = b[dir], w = idx===0?60:(idx===1?30:10), isB=false;
+                    bds.forEach((board, idx) => {
+                        let st = board[dir], w = idx===0?60:(idx===1?30:10), isB=false;
                         if(st===5) { bads.push(idx===0?"연오황":idx===1?"월오황":"일오황"); isB=true; }
-                        else if(b[opposites[dir]]===5) { bads.push(idx===0?"연암검":idx===1?"월암검":"일암검"); isB=true; }
+                        else if(board[opposites[dir]]===5) { bads.push(idx===0?"연암검":idx===1?"월암검":"일암검"); isB=true; }
                         else if(st===myS) { bads.push(idx===0?"연본명":idx===1?"월본명":"일본명"); isB=true; }
-                        else if(b[opposites[dir]]===myS) { bads.push(idx===0?"연적살":idx===1?"월적살":"일적살"); isB=true; }
-                        
-                        if(!isB) {
-                            sc += (goodEls.includes(st)?w:w/4);
-                        } else {
-                            sc -= 100;
-                        }
+                        else if(board[opposites[dir]]===myS) { bads.push(idx===0?"연적살":idx===1?"월적살":"일적살"); isB=true; }
+                        if(!isB) sc += (goodEls.includes(st)?w:w/4); else sc -= 100;
                     });
-                    
                     scores[dir] = Math.max(0, Math.round(sc));
                     results[dir] = { sc: Math.max(0, Math.round(sc)), b: [...new Set(bads)], stars: [bds[0][dir], bds[1][dir], bds[2][dir]] };
-                    
-                    let timeStar = timeObj[dir];
-                    shortTrip[dir] = { good: (!(timeStar===5 || timeObj[opposites[dir]]===5 || timeStar===myS || timeObj[opposites[dir]]===myS) && goodEls.includes(timeStar)), star: timeStar };
+                    let ts = timeObj[dir];
+                    shortTrip[dir] = { good: (!(ts===5 || timeObj[opposites[dir]]===5 || ts===myS || timeObj[opposites[dir]]===myS) && goodEls.includes(ts)), star: ts };
                 });
 
                 wedges.forEach(w => w.setMap(null)); wedges = [];
@@ -209,8 +208,6 @@
                 
                 for (let d in dAn) {
                     let s = scores[d], c = s>=90?'#0000ff':(s>=60?'#00bcd4':(s>=30?'#ff9800':'#ff0000')), p = [{lat: cp.lat(), lng: cp.lng()}];
-                    
-                    // 폴리곤 반경 20% 축소 (350000 -> 280000)
                     for (let a = dAn[d].s; a <= dAn[d].e; a += 3) {
                         let br = (a % 360) * Math.PI / 180, r=280000; 
                         let lt2 = Math.asin(Math.sin(cp.lat()*Math.PI/180)*Math.cos(r/6371000)+Math.cos(cp.lat()*Math.PI/180)*Math.sin(r/6371000)*Math.cos(br));
@@ -220,106 +217,37 @@
                     p.push({lat: cp.lat(), lng: cp.lng()});
                     wedges.push(new google.maps.Polygon({ path: p, strokeColor: '#000000', strokeWeight: 2, fillColor: c, fillOpacity: 0.2, map: map }));
                     
-                    // 라벨 반경 20% 축소 (120000 -> 96000)
-                    let midAngle = (dAn[d].s + dAn[d].e) / 2;
+                    let midA = (dAn[d].s + dAn[d].e) / 2;
                     let labelR = 96000;
-                    let brLab = midAngle * Math.PI / 180;
-                    let ltLab = Math.asin(Math.sin(cp.lat()*Math.PI/180)*Math.cos(labelR/6371000)+Math.cos(cp.lat()*Math.PI/180)*Math.sin(labelR/6371000)*Math.cos(brLab));
-                    let lnLab = cp.lng()*Math.PI/180 + Math.atan2(Math.sin(brLab)*Math.sin(labelR/6371000)*Math.cos(cp.lat()*Math.PI/180), Math.cos(labelR/6371000)-Math.sin(cp.lat()*Math.PI/180)*Math.sin(ltLab));
-                    
-                    let marker = new google.maps.Marker({
-                        position: {lat: ltLab*180/Math.PI, lng: lnLab*180/Math.PI},
-                        map: map,
-                        label: { text: `[${d}방향]`, color: '#1a237e', fontSize: '15px', fontWeight: '900', className: 'map-label' },
-                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 }
-                    });
-                    dirLabels.push(marker);
+                    let brL = midA * Math.PI / 180;
+                    let ltL = Math.asin(Math.sin(cp.lat()*Math.PI/180)*Math.cos(labelR/6371000)+Math.cos(cp.lat()*Math.PI/180)*Math.sin(labelR/6371000)*Math.cos(brL));
+                    let lnL = cp.lng()*Math.PI/180 + Math.atan2(Math.sin(brL)*Math.sin(labelR/6371000)*Math.cos(cp.lat()*Math.PI/180), Math.cos(labelR/6371000)-Math.sin(cp.lat()*Math.PI/180)*Math.sin(ltL));
+                    dirLabels.push(new google.maps.Marker({ position: {lat: ltL*180/Math.PI, lng: lnL*180/Math.PI}, map: map, label: { text: `[${d}]`, color: '#1a237e', fontSize: '14px', fontWeight: '900', className: 'map-label' }, icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 } }));
                 }
 
                 let h = `<h4 style="color:#1a237e; margin-top:0; border-bottom:2px solid #1a237e; padding-bottom:5px;">[방위별 상의(象意) 분석 리포트]</h4>`;
-                
-                let goodShortDirs = Object.keys(shortTrip).filter(d => shortTrip[d].good);
-                h += `<div class="short-trip-section">
-                        <b style="font-size:15px; color:#c05621;">🚗 근거리 단기 외출 가이드 (시반 적용)</b><br>
-                        <p style="font-size:13px; color:#555; margin-top:5px;">입력하신 <b>${tTime}</b> 기준, 가볍게 1~2시간 외출하기 좋은 상생 방향입니다.</p>`;
-                if(goodShortDirs.length > 0) {
-                    goodShortDirs.forEach(d => {
-                        let stData = starDB[shortTrip[d].star];
-                        h += `<div style="margin-top:8px; font-size:13px;"><b>[${d}방향]</b> ${stData.loc} 방문 권장. ${stData.drink} 마시기.</div>`;
-                    });
-                } else {
-                    h += `<div style="margin-top:8px; font-size:13px; color:#e53e3e;">해당 시간대에는 근거리 길방이 없습니다. 주의하십시오.</div>`;
-                }
-                h += `</div>`;
-
-                h += `<p style="font-size:13px; color:#555;">본명성: <b>${myS}성</b> | 분석 기준: 연(${yS}) 월(${mS}) 일(${dS})</p>`;
+                let goodS = Object.keys(shortTrip).filter(d => shortTrip[d].good);
+                h += `<div class="short-trip-section"><b style="font-size:15px; color:#c05621;">🚗 근거리 단기 외출 가이드 (시반 적용)</b><br><p style="font-size:13px; color:#555; margin-top:5px;">입력하신 <b>${tTime}</b> 기준 상생 방향입니다.</p>`;
+                if(goodS.length > 0) goodS.forEach(d => { let st = starDB[shortTrip[d].star]; h += `<div style="margin-top:8px; font-size:13px;"><b>[${d}방향]</b> ${st.loc} 방문 권장. ${st.drink} 마시기.</div>`; });
+                else h += `<div style="margin-top:8px; font-size:13px; color:#e53e3e;">해당 시간대에는 근거리 길방이 없습니다.</div>`;
+                h += `</div><p style="font-size:13px; color:#555;">본명성: <b>${myS}성</b> | 분석 기준: 연(${yS}) 월(${mS}) 일(${dS})</p>`;
                 
                 Object.keys(results).sort((a,b)=>results[b].sc - results[a].sc).forEach(d => {
                     let r = results[d], cl = r.sc>=90?'#0000ff':(r.sc>=60?'#00bcd4':(r.sc>=30?'#ff9800':'#ff0000'));
+                    let badS = r.stars[0]; if(r.b.some(x=>x.includes("오황"))) badS=5; else if(r.b.some(x=>x.includes("연"))) badS=r.stars[0]; else if(r.b.some(x=>x.includes("월"))) badS=r.stars[1]; else badS=r.stars[2];
+                    let badDt = starDB[badS], goodDt = starDB[r.stars[1]];
+                    let bestT = []; if(r.sc >= 60) { for(let i=0; i<12; i++) { let tTS = getTimeStar(dS, `${(i*2+23)%24}:00`); let tO={}; let cur=tTS; for(let j=0; j<9; j++){tO[posNames[j]]=cur; cur++; if(cur>9)cur=1;} if(goodEls.includes(tO[d]) && tO[d]!==5 && tO[opposites[d]]!==5) bestT.push(branchTimeMap[i]); } }
                     
-                    let targetBadStar = r.stars[0]; 
-                    if(r.b.some(x => x.includes("오황"))) targetBadStar = 5;
-                    else if (r.b.some(x => x.includes("연"))) targetBadStar = r.stars[0];
-                    else if (r.b.some(x => x.includes("월"))) targetBadStar = r.stars[1];
-                    else targetBadStar = r.stars[2];
-                    
-                    let badDt = starDB[targetBadStar];
-                    let goodDt = starDB[r.stars[1]];
-
-                    let bestTimes = [];
-                    if(r.sc >= 60) {
-                        for(let i=0; i<12; i++) {
-                            let testTime = `${(i*2+23)%24}:00`;
-                            let testTS = getTimeStar(dS, testTime);
-                            let testObj={}; let cur=testTS; for(let j=0; j<9; j++) { testObj[posNames[j]]=cur; cur++; if(cur>9) cur=1; }
-                            if(goodEls.includes(testObj[d]) && testObj[d]!==5 && testObj[opposites[d]]!==5) bestTimes.push(branchTimeMap[i]);
-                        }
-                    }
-
-                    h += `<div class="dir-card">`;
-                    h += `<div class="dir-header"><span>${d}방향</span> <span style="color:${cl}">${r.sc}%</span></div>`;
-                    h += `<div class="score-bar-container"><div class="score-bar" style="width:${r.sc}%; background:${cl}"></div></div>`;
-                    
-                    if(r.b.length > 0) {
-                        let badDetails = r.b.map(b => `<li style="margin-bottom:4px;">${badEffectsInfo[b]}</li>`).join('');
-                        h += `<div class="bad-section">
-                                <b>⚠️ 흉살 경고 (절대 주의):</b>
-                                <ul class="bad-list">${badDetails}</ul>
-                                <div class="remedy-box">
-                                🛡️ <b>[${badDt.n}] 기운 상쇄 비책:</b> 부득이 방문 시 <b>${badDt.badColor} 계열</b> 의상을 착용하고 <b>${badDt.badItem}</b>을(를) 지니십시오. 가급적 말을 아끼는 것이 좋습니다.
-                                </div>
-                              </div>`;
-                    }
-                    else if(r.sc >= 60) {
-                        let luckTags = goodDt.luck.split(', ').map(l => `<span class="luck-tag">${l}</span>`).join('');
-                        h += `<div class="good-section">
-                                <b style="font-size:15px;">✨ 정통 길방 취기법 (${goodDt.n})</b>
-                                <div style="margin: 8px 0;">${luckTags}</div>
-                                <div class="info-grid">
-                                    <div class="info-row"><div class="info-label">⏱️ 체류</div><div class="info-data"><span class="badge">${goodDt.duration}</span></div></div>
-                                    <div class="info-row"><div class="info-label">🚀 출발</div><div class="info-data">${bestTimes.length>0 ? '추천 시간대: '+bestTimes.slice(0,3).join(', ') : '해당 일에는 맑은 낮 시간대 선택'}</div></div>
-                                    <div class="info-row"><div class="info-label">📍 장소</div><div class="info-data">${goodDt.loc}</div></div>
-                                    <div class="info-row"><div class="info-label">🍽️ 식음</div><div class="info-data">${goodDt.food} / ${goodDt.drink}</div></div>
-                                    <div class="info-row"><div class="info-label">👕 의상</div><div class="info-data">운을 돕는 <b>${goodDt.goodColor}</b> 색상 착용</div></div>
-                                    <div class="info-row"><div class="info-label">💎 물건</div><div class="info-data">기운을 담아올 <b>${goodDt.goodItem}</b> 소지/구입</div></div>
-                                </div>
-                                <div class="highlight-box">🏃 <b>핵심 행동:</b> ${goodDt.act}</div>
-                              </div>`;
-                    }
-                    else {
-                        h += `<div class="weak-section">
-                                <b>⚠️ 기운 미약 (취기 비권장):</b> 강력한 흉살은 없으나 목적지와 본명성의 오행이 상극(相剋)하여 상생 효과가 없습니다. 취기 행동은 삼가고 평범한 일정을 보내십시오.
-                              </div>`;
-                    }
+                    h += `<div class="dir-card"><div class="dir-header"><span>${d}방향</span> <span style="color:${cl}">${r.sc}%</span></div><div class="score-bar-container"><div class="score-bar" style="width:${r.sc}%; background:${cl}"></div></div>`;
+                    if(r.b.length > 0) h += `<div class="bad-section"><b>⚠️ 흉살 경고:</b><ul class="bad-list">${r.b.map(b => `<li>${badEffectsInfo[b]}</li>`).join('')}</ul><div class="remedy-box">🛡️ <b>[${badDt.n}] 상쇄 비책:</b> ${badDt.badColor} 계열 의상 착용 및 <b>${badDt.badItem}</b> 지참 필수.</div></div>`;
+                    else if(r.sc >= 60) h += `<div class="good-section"><b style="font-size:15px;">✨ 정통 길방 취기법 (${goodDt.n})</b><div style="margin: 8px 0;">${goodDt.luck.split(', ').map(l => `<span class="luck-tag">${l}</span>`).join('')}</div><div class="info-grid"><div class="info-row"><div class="info-label">⏱️ 체류</div><div class="info-data"><span class="badge">${goodDt.duration}</span></div></div><div class="info-row"><div class="info-label">🚀 출발</div><div class="info-data">${bestT.length>0 ? '추천: '+bestT.slice(0,3).join(', ') : '낮 시간 선택'}</div></div><div class="info-row"><div class="info-label">📍 장소</div><div class="info-data">${goodDt.loc}</div></div><div class="info-row"><div class="info-label">🍽️ 식음</div><div class="info-data">${goodDt.food} / ${goodDt.drink}</div></div><div class="info-row"><div class="info-label">👕 의상</div><div class="info-data"><b>${goodDt.goodColor}</b> 착용</div></div><div class="info-row"><div class="info-label">💎 물건</div><div class="info-data"><b>${goodDt.goodItem}</b> 소지</div></div></div><div class="highlight-box">🏃 <b>핵심 행동:</b> ${goodDt.act}</div></div>`;
+                    else h += `<div class="weak-section"><b>⚠️ 기운 미약:</b> 흉살은 없으나 본명성과 상극인 방위입니다.</div>`;
                     h += `</div>`;
                 });
                 document.getElementById('result-panel').innerHTML = h;
-            } catch (e) { alert("연산 오류."); console.log(e); }
+            } catch (e) { alert("오류 발생"); }
         }
     </script>
-    <style>
-        .map-label { text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
-    </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAamEQotxhdSuayKAoEFN--sDsyAqt42B8&callback=initMap" async defer></script>
 </body>
 </html>
