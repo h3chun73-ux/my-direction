@@ -40,7 +40,7 @@
         .remedy-box { background: #fed7d7; padding: 10px; border-radius: 4px; margin-top: 10px; color: #742a2a; border-left: 4px solid #c53030; font-size: 13px; }
         .remedy-weak-box { background: #fefcbf; padding: 10px; border-radius: 4px; margin-top: 10px; color: #975a16; font-weight: bold; border-left: 4px solid #d69e2e; line-height: 1.4; }
         .map-label { text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
-        .star-info-bar { font-size: 12px; color: #555; margin-bottom:5px; background:#f7f7f7; padding:5px 8px; border-radius:4px; }
+        .star-info-bar { font-size: 12px; color: #555; margin-bottom:5px; background:#f0f4f8; padding:8px 10px; border-radius:6px; border:1px solid #c5cae9; }
 
         .time-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
         .time-table th { background: #e8eaf6; color: #283593; padding: 5px 6px; border: 1px solid #c5cae9; text-align: center; font-size: 12px; }
@@ -67,7 +67,7 @@
             <div class="input-group">
                 <label>🚗 여행(외출) 출발 일시</label>
                 <input type="date" id="travel-date">
-                <input type="time" id="travel-time" value="12:00">
+                <input type="time" id="travel-time">
             </div>
         </div>
         <button class="main-btn" onclick="analyzeDirection()">전 우주적 정밀 분석 실행</button>
@@ -102,15 +102,15 @@
         };
 
         const starDB = {
-            1: { n: "1백수성(一白水星)", duration: "3박 4일 이상", luck: "교제운 상승, 비밀 성사, 자식/건강 회복, 치유", loc: "바다, 강, 호수, 수질 좋은 온천, 수족관, 유흥주점", food: "생선회, 두부, 맑은 국물, 짠맛 요리", drink: "미네랄 워터, 맑은 곡주, 생수", goodColor: "흰색, 검은색 배합", goodItem: "진주, 수정 팔찌, 투명한 유리병", badColor: "밝은 붉은색", badItem: "검은색 속옷, 금속 시계", act: "밤 시간대 명상, 온천욕, 고민 털어내기" },
-            2: { n: "2흑토성(二黑土星)", duration: "2박 3일 이상", luck: "가정 안정, 부동산운, 취업/이직, 끈기 향상", loc: "평야, 시골, 전통시장, 농장, 고향, 오래된 노포", food: "잡곡밥, 발효식품(된장), 고구마, 나물", drink: "곡물차, 따뜻한 우유", goodColor: "황색, 갈색", goodItem: "도자기 소품, 마 직물 의류", badColor: "짙은 녹색, 청색", badItem: "가죽 벨트/지갑, 갈색 구두", act: "맨발 걷기(어싱), 전통 시장 방문" },
-            3: { n: "3벽목성(三碧木星)", duration: "1박 2일 단기", luck: "사업/기획 발전, 젊음/활력, 소리/방송 성공", loc: "숲 우거진 산, 계곡, 폭포, 방송국, 공연장", food: "샐러드, 신맛 과일(레몬), 새싹채소", drink: "감귤류 주스, 탄산수", goodColor: "청색, 밝은 녹색", goodItem: "나무 팔찌, 새 신발, 전자기기", badColor: "백색, 은색", badItem: "녹색 스카프, 금속 안경테", act: "일출 감상, 신나는 음악 듣기" },
-            4: { n: "4록목성(四綠木星)", duration: "2박 3일", luck: "결혼/연애운, 좋은 거래처 확보, 신용 회복", loc: "식물원, 바람 통하는 언덕, 공항, 카페", food: "파스타, 우동, 국수(긴 요리), 닭고기", drink: "향기로운 꽃차", goodColor: "연녹색, 하늘색", goodItem: "향수, 긴 리본/넥타이", badColor: "백색, 은색", badItem: "긴 목걸이, 하늘색 손수건", act: "먼 곳 지인에게 연락, 해안 산책" },
-            5: { n: "5황토성(五黃土星)", duration: "취기 절대 불가", luck: "절대 흉방 (부패, 파괴, 극단적 손실)", loc: "황무지, 폐기장, 공사장, 인적 드문 곳", food: "익힌 음식", drink: "해독 작용 차", goodColor: "해당 없음", goodItem: "취기 금지", badColor: "노란색, 흙색", badItem: "금속 악세서리 다수", act: "이동 최소화 및 침묵 유지" },
-            6: { n: "6백금성(六白金星)", duration: "1박 2일", luck: "승진/권위, 귀인 조우, 대규모 투자", loc: "대형 사찰, 웅장한 바위산, 관공서, 고급 호텔", food: "고급 한정식, 둥근 과일(사과/멜론)", drink: "고급 명주, 스파클링 워터", goodColor: "백색, 은색, 금색", goodItem: "고급 아날로그 시계, 도장", badColor: "적색, 분홍색", badItem: "은색 반지 다수, 흰색 상의", act: "사찰 참배 및 기도, 격식 차리기" },
-            7: { n: "7적금성(七赤金星)", duration: "당일~1박 2일", luck: "여유 금전운, 유희/연애운, 화술 향상", loc: "얕은 계곡, 번화가, 화려한 카페, 은행", food: "치킨 등 정육 튀김류, 달콤한 디저트", drink: "달콤한 커피, 칵테일, 와인", goodColor: "핑크, 오렌지", goodItem: "작은 종, 화려한 립스틱", badColor: "적색, 분홍색", badItem: "핑크색 파우치, 화려한 귀걸이", act: "카페 수다, 현금 소비, 많이 웃기" },
-            8: { n: "8백토성(八白土星)", duration: "3박 4일 이상", luck: "상황의 긍정적 역전, 상속/부동산, 악연 단절", loc: "높은 산, 전망대, 케이블카, 호텔 객실", food: "쇠고기 요리, 페이스트리(빵), 샌드위치", drink: "진한 쌍화차, 단 음료", goodColor: "베이지, 황토색", goodItem: "튼튼한 가죽 가방, 지역 돌", badColor: "짙은 녹색, 청색", badItem: "베이지색 모자, 가죽 팔찌", act: "전망대 관람, 새로운 계획 세우기" },
-            9: { n: "9자화성(九紫火星)", duration: "당일 집중", luck: "미용/예술운, 시험 합격, 선견지명, 명예", loc: "미술관, 도서관, 야경 명소, 미용실, 채광 좋은 곳", food: "갑각류(게/새우), 붉은 살코기, 초콜릿", drink: "레드 와인, 블랙 커피", goodColor: "적색, 보라색", goodItem: "안경/선글라스, 예술 서적", badColor: "흑색, 어두운 색", badItem: "붉은색 양말", act: "미술 작품 감상, 문서/일기 작성" }
+            1: { n: "1백수성(一白水星)", keyword: "비밀, 수면, 직관력, 아랫사람(자식/부하), 육체적/정신적 치유", duration: "3박 4일 이상", luck: "교제운 상승, 비밀 성사, 자식/건강 회복, 치유", loc: "바다, 강, 호수, 수질 좋은 온천, 수족관, 유흥주점", food: "생선회, 두부, 맑은 국물, 짠맛 요리", drink: "미네랄 워터, 맑은 곡주, 생수", goodColor: "흰색, 검은색 배합", goodItem: "진주, 수정 팔찌, 투명한 유리병", badColor: "밝은 붉은색", badItem: "검은색 속옷, 금속 시계", act: "밤 시간대 명상, 온천욕, 고민 털어내기" },
+            2: { n: "2흑토성(二黑土星)", keyword: "가정(어머니), 대중/서민, 끈기와 성실, 노력, 부동산(토지), 오래된 것", duration: "2박 3일 이상", luck: "가정 안정, 부동산운, 취업/이직, 끈기 향상", loc: "평야, 시골, 전통시장, 농장, 고향, 오래된 노포", food: "잡곡밥, 발효식품(된장), 고구마, 나물", drink: "곡물차, 따뜻한 우유", goodColor: "황색, 갈색", goodItem: "도자기 소품, 마 직물 의류", badColor: "짙은 녹색, 청색", badItem: "가죽 벨트/지갑, 갈색 구두", act: "맨발 걷기(어싱), 전통 시장 방문" },
+            3: { n: "3벽목성(三碧木星)", keyword: "새 출발, 아이디어, 패기, 소리(방송/음악), 전기전자, 놀라움", duration: "1박 2일 단기", luck: "사업/기획 발전, 젊음/활력, 소리/방송 성공", loc: "숲 우거진 산, 계곡, 폭포, 방송국, 공연장", food: "샐러드, 신맛 과일(레몬), 새싹채소", drink: "감귤류 주스, 탄산수", goodColor: "청색, 밝은 녹색", goodItem: "나무 팔찌, 새 신발, 전자기기", badColor: "백색, 은색", badItem: "녹색 스카프, 금속 안경테", act: "일출 감상, 신나는 음악 듣기" },
+            4: { n: "4록목성(四綠木星)", keyword: "신용, 거래(무역), 인연(결혼/연애), 여행, 소식, 긴 것(도로/끈), 바람", duration: "2박 3일", luck: "결혼/연애운, 좋은 거래처 확보, 신용 회복", loc: "식물원, 바람 통하는 언덕, 공항, 카페", food: "파스타, 우동, 국수(긴 요리), 닭고기", drink: "향기로운 꽃차", goodColor: "연녹색, 하늘색", goodItem: "향수, 긴 리본/넥타이", badColor: "백색, 은색", badItem: "긴 목걸이, 하늘색 손수건", act: "먼 곳 지인에게 연락, 해안 산책" },
+            5: { n: "5황토성(五黃土星)", keyword: "제왕, 중심, 부패, 극단적 막힘, 고집, 재생불가 (※절대 흉방)", duration: "취기 절대 불가", luck: "절대 흉방 (부패, 파괴, 극단적 손실)", loc: "황무지, 폐기장, 공사장, 인적 드문 곳", food: "익힌 음식", drink: "해독 작용 차", goodColor: "해당 없음", goodItem: "취기 금지", badColor: "노란색, 흙색", badItem: "금속 악세서리 다수", act: "이동 최소화 및 침묵 유지" },
+            6: { n: "6백금성(六白金星)", keyword: "권력(윗사람/아버지), 성공, 대자본, 법규, 리더십, 기계, 완성된 힘", duration: "1박 2일", luck: "승진/권위, 귀인 조우, 대규모 투자", loc: "대형 사찰, 웅장한 바위산, 관공서, 고급 호텔", food: "고급 한정식, 둥근 과일(사과/멜론)", drink: "고급 명주, 스파클링 워터", goodColor: "백색, 은색, 금색", goodItem: "고급 아날로그 시계, 도장", badColor: "적색, 분홍색", badItem: "은색 반지 다수, 흰색 상의", act: "사찰 참배 및 기도, 격식 차리기" },
+            7: { n: "7적금성(七赤金星)", keyword: "현금, 유흥(쾌락), 기쁨, 입(말/구설), 연애, 소비, 식도락, 날카로운 것", duration: "당일~1박 2일", luck: "여유 금전운, 유희/연애운, 화술 향상", loc: "얕은 계곡, 번화가, 화려한 카페, 은행", food: "치킨 등 정육 튀김류, 달콤한 디저트", drink: "달콤한 커피, 칵테일, 와인", goodColor: "핑크, 오렌지", goodItem: "작은 종, 화려한 립스틱", badColor: "적색, 분홍색", badItem: "핑크색 파우치, 화려한 귀걸이", act: "카페 수다, 현금 소비, 많이 웃기" },
+            8: { n: "8백토성(八白土星)", keyword: "변화, 개혁, 상속, 축적(부동산), 가족/친척, 정지 후 새출발, 산", duration: "3박 4일 이상", luck: "상황의 긍정적 역전, 상속/부동산, 악연 단절", loc: "높은 산, 전망대, 케이블카, 호텔 객실", food: "쇠고기 요리, 페이스트리(빵), 샌드위치", drink: "진한 쌍화차, 단 음료", goodColor: "베이지, 황토색", goodItem: "튼튼한 가죽 가방, 지역 돌", badColor: "짙은 녹색, 청색", badItem: "베이지색 모자, 가죽 팔찌", act: "전망대 관람, 새로운 계획 세우기" },
+            9: { n: "9자화성(九紫火星)", keyword: "명예, 문서(계약/학문), 아름다움, 이별/탄로, 두뇌/정신, 빛(불)", duration: "당일 집중", luck: "미용/예술운, 시험 합격, 선견지명, 명예", loc: "미술관, 도서관, 야경 명소, 미용실, 채광 좋은 곳", food: "갑각류(게/새우), 붉은 살코기, 초콜릿", drink: "레드 와인, 블랙 커피", goodColor: "적색, 보라색", goodItem: "안경/선글라스, 예술 서적", badColor: "흑색, 어두운 색", badItem: "붉은색 양말", act: "미술 작품 감상, 문서/일기 작성" }
         };
 
         const posNames = ["중앙", "서북", "서", "북동", "남", "북", "남서", "동", "동남"];
@@ -249,9 +249,16 @@
             var savedBD = localStorage.getItem('masterBirthDate');
             var savedBT = localStorage.getItem('masterBirthTime');
             var today = new Date();
+            
+            var tzOffset = today.getTimezoneOffset() * 60000;
+            var localToday = new Date(today.getTime() - tzOffset);
+
             if(savedBD) document.getElementById('birth-date').value = savedBD;
             if(savedBT) document.getElementById('birth-time').value = savedBT;
-            document.getElementById('travel-date').value = today.toISOString().split('T')[0];
+            
+            document.getElementById('travel-date').value = localToday.toISOString().split('T')[0];
+            document.getElementById('travel-time').value = localToday.toISOString().split('T')[1].substring(0, 5);
+            
             updateBirthStars();
         });
 
@@ -307,7 +314,6 @@
 
                 const branchDir8 = ["북","북동","북동","동","동남","남","남","남서","서","서","서북","서북"];
 
-                // 완벽한 파살 방위 계산 (충 방위)
                 let yearBranch = (tStars.adjY - 4 + 1200) % 12;
                 let yearPaDir = branchDir8[(yearBranch + 6) % 12];
                 let monthBranch = tStars.adjM % 12;
@@ -434,7 +440,7 @@
                             let scColor = item.sc >= 90 ? '#0000ff' : (item.sc >= 60 ? '#00838f' : '#e65100');
                             return `<div style="margin:4px 0; padding:4px 0; border-bottom:1px dashed #cbd5e0; font-size:12px;">
                                 <b style="color:#2b6cb0;">[${item.d}방] <span style="color:${scColor};">${item.sc}%</span></b><br>
-                                <span style="color:#444;">📍 <b>장소:</b> ${db.loc}<br>🍽️ <b>식음료:</b> ${db.food}, ${db.drink}<br>🏃 <b>행동:</b> ${db.act}</span>
+                                <span style="color:#444;">💡 <b>핵심기운:</b> ${db.keyword}<br>📍 <b>장소:</b> ${db.loc}<br>🍽️ <b>식음료:</b> ${db.food}, ${db.drink}<br>🏃 <b>행동:</b> ${db.act}</span>
                             </div>`;
                         }).join('');
                         
@@ -494,7 +500,12 @@
 
                     h += `<div class="dir-card">
                         <div class="dir-header"><span>${d}방향</span><span style="color:${cl}">${r.sc}%</span></div>
-                        <div class="star-info-bar">연반: <b>${r.stars[0]}성</b> &nbsp;|&nbsp; 월반: <b>${r.stars[1]}성</b> &nbsp;|&nbsp; 일반: <b>${r.stars[2]}성</b></div>
+                        <div class="star-info-bar" style="line-height:1.6; font-size:13px;">
+                            <div style="font-weight:bold; color:#1a237e; margin-bottom:5px; padding-bottom:4px; border-bottom:1px dashed #c5cae9;">💡 방위별 핵심기운 (象意)</div>
+                            <div style="margin-top:4px;">▶ 연반 <b>${r.stars[0]}성</b> : <span style="color:#0d47a1;">${starDB[r.stars[0]].keyword}</span></div>
+                            <div style="margin-top:2px;">▶ 월반 <b>${r.stars[1]}성</b> : <span style="color:#0d47a1;">${starDB[r.stars[1]].keyword}</span></div>
+                            <div style="margin-top:2px;">▶ 일반 <b>${r.stars[2]}성</b> : <span style="color:#0d47a1;">${starDB[r.stars[2]].keyword}</span></div>
+                        </div>
                         <div class="score-bar-container"><div class="score-bar" style="width:${r.sc}%; background:${cl}"></div></div>`;
 
                     if(r.b.length > 0){
