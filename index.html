@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>구성방위학 정밀 분석 시스템 (Master V5.6 - 대흉살 완벽 해결 법칙 적용판)</title>
+    <title>구성방위학 정밀 분석 시스템 (Master V6.2 - 상세 상의 및 피흉법 완벽 복구판)</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; display: flex; flex-direction: column; height: 100vh; }
         .header-panel { background-color: #ffffff; padding: 15px; border-bottom: 3px solid #1a237e; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 10; }
@@ -37,10 +37,17 @@
         .highlight-box { background: #ebf8ff; border-left: 4px solid #3182ce; padding: 12px; margin-top: 12px; font-weight: bold; font-size: 13.5px; color: #2b6cb0; }
         .badge { background: #3182ce; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; }
         .luck-tag { display: inline-block; background: #c6f6d5; color: #22543d; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; margin-bottom: 4px; font-weight: bold; border: 1px solid #9ae6b4; }
-        .remedy-box { background: #fed7d7; padding: 10px; border-radius: 4px; margin-top: 10px; color: #742a2a; border-left: 4px solid #c53030; }
+        .remedy-box { background: #fed7d7; padding: 10px; border-radius: 4px; margin-top: 10px; color: #742a2a; border-left: 4px solid #c53030; font-size: 13px; }
         .remedy-weak-box { background: #fefcbf; padding: 10px; border-radius: 4px; margin-top: 10px; color: #975a16; font-weight: bold; border-left: 4px solid #d69e2e; line-height: 1.4; }
         .map-label { text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
         .star-info-bar { font-size: 12px; color: #555; margin-bottom:5px; background:#f7f7f7; padding:5px 8px; border-radius:4px; }
+
+        .time-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+        .time-table th { background: #e8eaf6; color: #283593; padding: 5px 6px; border: 1px solid #c5cae9; text-align: center; font-size: 12px; }
+        .time-table td { padding: 5px 6px; border: 1px solid #e0e0e0; text-align: center; vertical-align: middle; }
+        .time-good { background: #f0fff4; }
+        .time-bad { background: #fff5f5; }
+        .time-now { outline: 2px solid #1a237e; outline-offset: -2px; }
     </style>
 </head>
 <body>
@@ -53,8 +60,9 @@
             </div>
             <div class="input-group">
                 <label>👤 내 생년월일시 (자동저장)</label>
-                <input type="date" id="birth-date">
-                <input type="time" id="birth-time">
+                <input type="date" id="birth-date" oninput="updateBirthStars()">
+                <input type="time" id="birth-time" oninput="updateBirthStars()">
+                <div id="birth-star-display" style="margin-top:8px; padding:10px; background:#fff; border-radius:6px; border:1px solid #9fa8da; font-size:13px; line-height:1.6; min-height:20px;"></div>
             </div>
             <div class="input-group">
                 <label>🚗 여행(외출) 출발 일시</label>
@@ -68,7 +76,7 @@
         <div id="map"></div>
         <div id="result-panel">
             <h4 style="color:#1a237e; margin-top:0;">[데이터 대기 중]</h4>
-            <p>날짜를 확인하고 분석 버튼을 눌러주십시오. 주소 검색이나 마커 이동 시 중심축이 자동 변경됩니다.</p>
+            <p>날짜를 확인하고 분석 버튼을 눌러주십시오.</p>
         </div>
     </div>
 
@@ -100,24 +108,154 @@
             4: { n: "4록목성(四綠木星)", duration: "2박 3일", luck: "결혼/연애운, 좋은 거래처 확보, 신용 회복", loc: "식물원, 바람 통하는 언덕, 공항, 카페", food: "파스타, 우동, 국수(긴 요리), 닭고기", drink: "향기로운 꽃차", goodColor: "연녹색, 하늘색", goodItem: "향수, 긴 리본/넥타이", badColor: "백색, 은색", badItem: "긴 목걸이, 하늘색 손수건", act: "먼 곳 지인에게 연락, 해안 산책" },
             5: { n: "5황토성(五黃土星)", duration: "취기 절대 불가", luck: "절대 흉방 (부패, 파괴, 극단적 손실)", loc: "황무지, 폐기장, 공사장, 인적 드문 곳", food: "익힌 음식", drink: "해독 작용 차", goodColor: "해당 없음", goodItem: "취기 금지", badColor: "노란색, 흙색", badItem: "금속 악세서리 다수", act: "이동 최소화 및 침묵 유지" },
             6: { n: "6백금성(六白金星)", duration: "1박 2일", luck: "승진/권위, 귀인 조우, 대규모 투자", loc: "대형 사찰, 웅장한 바위산, 관공서, 고급 호텔", food: "고급 한정식, 둥근 과일(사과/멜론)", drink: "고급 명주, 스파클링 워터", goodColor: "백색, 은색, 금색", goodItem: "고급 아날로그 시계, 도장", badColor: "적색, 분홍색", badItem: "은색 반지 다수, 흰색 상의", act: "사찰 참배 및 기도, 격식 차리기" },
-            7: { n: "7적금성(七赤金星)", duration: "당일~1박 2일", luck: "여유 금전운, 유희/연애운, 화술 향상", loc: "얕은 계곡, 번화가, 화려한 카페, 은행", food: "치킨 등 튀김류, 달콤한 디저트", drink: "달콤한 커피, 칵테일", goodColor: "핑크, 오렌지", goodItem: "작은 종, 화려한 립스틱", badColor: "적색, 분홍색", badItem: "핑크색 파우치, 화려한 귀걸이", act: "카페 수다, 현금 소비, 많이 웃기" },
-            8: { n: "8백토성(八白土星)", duration: "3박 4일 이상", luck: "상황의 긍정적 역전, 상속/부동산, 악연 단절", loc: "높은 산, 전망대, 케이블카, 호텔 객실", food: "쇠고기 요리, 페이스트리", drink: "진한 쌍화차, 단 음료", goodColor: "베이지, 황토색", goodItem: "튼튼한 가죽 가방, 지역 돌", badColor: "짙은 녹색, 청색", badItem: "베이지색 모자, 가죽 팔찌", act: "전망대 관람, 새로운 계획 세우기" },
+            7: { n: "7적금성(七赤金星)", duration: "당일~1박 2일", luck: "여유 금전운, 유희/연애운, 화술 향상", loc: "얕은 계곡, 번화가, 화려한 카페, 은행", food: "치킨 등 정육 튀김류, 달콤한 디저트", drink: "달콤한 커피, 칵테일, 와인", goodColor: "핑크, 오렌지", goodItem: "작은 종, 화려한 립스틱", badColor: "적색, 분홍색", badItem: "핑크색 파우치, 화려한 귀걸이", act: "카페 수다, 현금 소비, 많이 웃기" },
+            8: { n: "8백토성(八白土星)", duration: "3박 4일 이상", luck: "상황의 긍정적 역전, 상속/부동산, 악연 단절", loc: "높은 산, 전망대, 케이블카, 호텔 객실", food: "쇠고기 요리, 페이스트리, 샌드위치", drink: "진한 쌍화차, 단 음료", goodColor: "베이지, 황토색", goodItem: "튼튼한 가죽 가방, 지역 돌", badColor: "짙은 녹색, 청색", badItem: "베이지색 모자, 가죽 팔찌", act: "전망대 관람, 새로운 계획 세우기" },
             9: { n: "9자화성(九紫火星)", duration: "당일 집중", luck: "미용/예술운, 시험 합격, 선견지명, 명예", loc: "미술관, 도서관, 야경 명소, 미용실, 채광 좋은 곳", food: "갑각류(게/새우), 붉은 살코기, 초콜릿", drink: "레드 와인, 블랙 커피", goodColor: "적색, 보라색", goodItem: "안경/선글라스, 예술 서적", badColor: "흑색, 어두운 색", badItem: "붉은색 양말", act: "미술 작품 감상, 문서/일기 작성" }
         };
 
         const posNames = ["중앙", "서북", "서", "북동", "남", "북", "남서", "동", "동남"];
         const opposites = { "서북": "동남", "동남": "서북", "서": "동", "동": "서", "북동": "남서", "남서": "북동", "남": "북", "북": "남", "중앙": "없음" };
-        const branchTimeMap = ["자(23~01)", "축(01~03)", "인(03~05)", "묘(05~07)", "진(07~09)", "사(09~11)", "오(11~13)", "미(13~15)", "신(15~17)", "유(17~19)", "술(19~21)", "해(21~23)"];
 
-        window.onload = function() {
-            initMap();
-            const savedBD = localStorage.getItem('masterBirthDate');
-            const savedBT = localStorage.getItem('masterBirthTime');
-            let today = new Date();
+        const branchTimeMap = [
+            "자(23:30~01:30)", "축(01:30~03:30)", "인(03:30~05:30)", "묘(05:30~07:30)",
+            "진(07:30~09:30)", "사(09:30~11:30)", "오(11:30~13:30)", "미(13:30~15:30)",
+            "신(15:30~17:30)", "유(17:30~19:30)", "술(19:30~21:30)", "해(21:30~23:30)"
+        ];
+
+        function getExactStars(dateStr, timeStr) {
+            let b = dateStr.split('-');
+            let parts = timeStr.split(':');
+            let rawY = parseInt(b[0], 10), rawM = parseInt(b[1], 10), rawD = parseInt(b[2], 10);
+            let hour = parseInt(parts[0], 10), minute = parts[1] ? parseInt(parts[1], 10) : 0;
+
+            let dateObj = new Date(Date.UTC(rawY, rawM - 1, rawD, hour, minute));
+            dateObj.setUTCMinutes(dateObj.getUTCMinutes() + 30);
+
+            let y = dateObj.getUTCFullYear();
+            let m = dateObj.getUTCMonth() + 1;
+            let d = dateObj.getUTCDate();
+
+            let ts = Date.UTC(y, m-1, d, 12, 0, 0);
+            let days = Math.floor(ts / 86400000);
+
+            let adjY = y;
+            let adjM = m;
+            const termDays = [0, 6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 7, 7];
+            let termDay = termDays[m];
+            
+            if (m < 2 || (m === 2 && d < termDay)) adjY -= 1;
+            let sy = String(adjY).split('').reduce((a,x) => parseInt(a)+parseInt(x), 0);
+            while(sy > 9) sy = String(sy).split('').reduce((a,x) => parseInt(a)+parseInt(x), 0);
+            let yStar = 11 - sy;
+            while(yStar <= 0) yStar += 9;
+            while(yStar > 9) yStar -= 9;
+
+            if (d < termDay) {
+                adjM = m - 1;
+                if (adjM === 0) adjM = 12;
+            }
+            let zodiacY = (adjY - 4) % 12;
+            if (zodiacY < 0) zodiacY += 12;
+            let baseM = [0,3,6,9].includes(zodiacY) ? 8 : ([1,4,7,10].includes(zodiacY) ? 5 : 2);
+            let offsetM = adjM < 2 ? adjM + 10 : adjM - 2;
+            let mStar = baseM - offsetM;
+            while(mStar <= 0) mStar += 9;
+            while(mStar > 9) mStar -= 9;
+
+            let dz = (days + 23) % 60; if(dz < 0) dz += 60;
+            let yForDun = new Date(days * 86400000).getUTCFullYear();
+            let ssDays = Math.floor(Date.UTC(yForDun, 5, 21) / 86400000); 
+            let wsDays = Math.floor(Date.UTC(yForDun, 11, 22) / 86400000); 
+            let wsPrevDays = Math.floor(Date.UTC(yForDun-1, 11, 22) / 86400000); 
+
+            function getClosestSwitch(d0) {
+                let d0_dz = (d0 + 23) % 60; if(d0_dz < 0) d0_dz += 60;
+                let minDiff = 999;
+                [0, 15, 30, 45].forEach(q => {
+                    let diff = d0_dz - q;
+                    if(diff > 30) diff -= 60;
+                    if(diff < -30) diff += 60;
+                    if(Math.abs(diff) < Math.abs(minDiff)) { minDiff = diff; }
+                });
+                return d0 - minDiff;
+            }
+
+            let currentYinStart = getClosestSwitch(ssDays);
+            let currentYangStart = getClosestSwitch(wsPrevDays);
+            let nextYangStart = getClosestSwitch(wsDays);
+
+            let isYin = false;
+            if (days >= currentYinStart && days < nextYangStart) isYin = true; 
+
+            let dStar = isYin ? (9 - (dz % 9)) : ((dz % 9) + 1);
+
+            let totalMins = hour * 60 + minute;
+            let adjustedMins = (totalMins - (23 * 60 + 30) + 1440) % 1440;
+            let branchIdx = Math.floor(adjustedMins / 120);
+
+            let dayBranch = dz % 12;
+            let hBase;
+            if ([0,3,6,9].includes(dayBranch)) { hBase = isYin ? 9 : 1; }
+            else if ([1,4,7,10].includes(dayBranch)) { hBase = isYin ? 6 : 4; }
+            else { hBase = isYin ? 3 : 7; }
+
+            let tStar = isYin ? (hBase - branchIdx) : (hBase + branchIdx);
+            while(tStar <= 0) tStar += 9;
+            while(tStar > 9) tStar -= 9;
+
+            return { y: yStar, m: mStar, d: dStar, t: tStar, isYin: isYin, dz: dz, adjY: adjY, adjM: adjM };
+        }
+
+        function getCurrentBranchIdx(timeStr) {
+            let parts = timeStr.split(':');
+            let hour = parseInt(parts[0], 10);
+            let minute = parts[1] ? parseInt(parts[1], 10) : 0;
+            let totalMins = hour * 60 + minute;
+            let adjustedMins = (totalMins - (23 * 60 + 30) + 1440) % 1440;
+            return Math.floor(adjustedMins / 120);
+        }
+
+        function updateBirthStars() {
+            try {
+                var bStr = document.getElementById('birth-date').value;
+                var bTime = document.getElementById('birth-time').value || "12:00";
+                var div = document.getElementById('birth-star-display');
+                if(!div) return;
+                if(!bStr){ div.innerHTML = ''; return; }
+                
+                var bStars = getExactStars(bStr, bTime);
+                var sc = {1:'#3b82f6', 2:'#854d0e', 3:'#166534', 4:'#15803d', 5:'#b45309', 6:'#4b5563', 7:'#be185d', 8:'#78350f', 9:'#dc2626'};
+                
+                function mkRow(label, s, extraInfo) {
+                    var color = sc[s] || '#555';
+                    var badge = `<span style="display:inline-block; background:${color}; color:#fff; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:13px; margin:0 6px 0 2px;">${s}성</span>`;
+                    var text = `<span style="color:#1e3a8a; font-size:14px;">${starDB[s].n}</span>`;
+                    var ex = extraInfo ? `<span style="font-size:12px; color:#9ca3af; margin-left:6px;">${extraInfo}</span>` : '';
+                    return `<div style="margin-bottom:6px; display:flex; align-items:center;">
+                                <span style="color:#4b5563; width:75px; font-size:13.5px;">${label}:</span>
+                                ${badge} ${text} ${ex}
+                            </div>`;
+                }
+
+                var html = mkRow('본명성(연)', bStars.y, '') + mkRow('월명성(월)', bStars.m, '') + mkRow('일명성(일)', bStars.d, '');
+                if(document.getElementById('birth-time').value) {
+                    html += mkRow('시명성(시)', bStars.t, `(${bTime} 기준)`);
+                }
+                div.innerHTML = html;
+            } catch(e) { console.error(e); }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var savedBD = localStorage.getItem('masterBirthDate');
+            var savedBT = localStorage.getItem('masterBirthTime');
+            var today = new Date();
             if(savedBD) document.getElementById('birth-date').value = savedBD;
             if(savedBT) document.getElementById('birth-time').value = savedBT;
             document.getElementById('travel-date').value = today.toISOString().split('T')[0];
-        };
+            updateBirthStars();
+        });
+
+        function initMapCallback() { initMap(); }
 
         function initMap() {
             var loc = { lat: 37.785, lng: 126.833 };
@@ -140,62 +278,21 @@
             });
         }
 
-        function getStarVal(y, m, d, mode) {
-            y = parseInt(y, 10); m = parseInt(m, 10); d = parseInt(d, 10);
-
-            if (mode === 'y') {
-                if (m < 2 || (m === 2 && d < 4)) y -= 1;
-                let s = String(y).split('').reduce((a,b) => parseInt(a)+parseInt(b), 0);
-                while(s > 9) s = String(s).split('').reduce((a,b) => parseInt(a)+parseInt(b), 0);
-                let res = 11 - s;
-                while(res <= 0) res += 9;
-                while(res > 9) res -= 9;
-                return res;
-            }
-
-            if (mode === 'm') {
-                let adjY = (m < 2 || (m === 2 && d < 4)) ? y - 1 : y;
-                let zodiac = (adjY - 4) % 12;
-                if(zodiac < 0) zodiac += 12;
-                let base = [0,3,6,9].includes(zodiac) ? 8 : ([1,4,7,10].includes(zodiac) ? 5 : 2);
-                let offset = m < 2 ? m + 10 : m - 2;
-                let res = base - offset;
-                while(res <= 0) res += 9;
-                while(res > 9) res -= 9;
-                return res;
-            }
-
-            let ts = Date.UTC(y, m-1, d);
-            let days = Math.floor(ts / 86400000);
-            let res = ((days + 5) % 9) + 1;
-            return res;
-        }
-
-        function getTimeStar(dStar, timeStr) {
-            let hour = parseInt(timeStr.split(':')[0], 10);
-            let branchIdx = Math.floor((hour + 1) % 24 / 2);
-            let base = [1,4,7].includes(dStar) ? 8 : ([2,5,8].includes(dStar) ? 5 : 2);
-            let tStar = base + branchIdx;
-            while(tStar > 9) tStar -= 9;
-            return tStar;
-        }
-
         function analyzeDirection() {
             try {
                 let bStr = document.getElementById('birth-date').value,
                     tStr = document.getElementById('travel-date').value,
                     tTime = document.getElementById('travel-time').value;
-                if(!bStr || !tStr) { alert("날짜 정보를 입력하십시오."); return; }
+                if(!bStr || !tStr) { alert("날짜 정보를 입력해 주십시오."); return; }
 
                 localStorage.setItem('masterBirthDate', bStr);
                 localStorage.setItem('masterBirthTime', document.getElementById('birth-time').value);
 
-                let b = bStr.split('-'), t = tStr.split('-');
-                let myS = getStarVal(b[0], b[1], b[2], 'y');
-                let yS = getStarVal(t[0], t[1], t[2], 'y');
-                let mS = getStarVal(t[0], t[1], t[2], 'm');
-                let dS = getStarVal(t[0], t[1], t[2], 'd');
-                let tS = getTimeStar(dS, tTime);
+                let bStars = getExactStars(bStr, document.getElementById('birth-time').value || "12:00");
+                let myS = bStars.y, myM = bStars.m, myD = bStars.d, myT = bStars.t;
+
+                let tStars = getExactStars(tStr, tTime);
+                let yS = tStars.y, mS = tStars.m, dS = tStars.d, tS = tStars.t;
 
                 let bds = [yS, mS, dS].map(c => {
                     let obj={}, cur=c;
@@ -208,14 +305,22 @@
                 let myElement = [1].includes(myS)?'수':([2,5,8].includes(myS)?'토':([3,4].includes(myS)?'목':([6,7].includes(myS)?'금':'화')));
                 let goodEls = {'수':[6,7,1,3,4],'목':[1,3,4,9],'화':[3,4,9,2,8],'토':[9,2,8,6,7],'금':[2,8,6,7,1]}[myElement];
 
-                let scores={}, results={}, shortTrip={};
+                const branchDir8 = ["북","북동","북동","동","동남","남","남","남서","서","서","서북","서북"];
+                const paOf = [9,4,11,6,1,8,3,10,5,0,7,2];
+
+                let yearBranch = (tStars.adjY - 4 + 1200) % 12;
+                let yearPaDir = branchDir8[paOf[yearBranch]];
+                let monthBranch = tStars.adjM % 12;
+                let monthPaDir = branchDir8[paOf[monthBranch]];
+                let dayPaDir = branchDir8[paOf[tStars.dz % 12]];
+
+                let scores={}, results={};
 
                 posNames.forEach(dir => {
                     if(dir === "중앙") return;
                     let sc=0, bads=[];
                     bds.forEach((board, idx) => {
                         let st=board[dir], w=idx===0?60:(idx===1?30:10), isB=false;
-                        
                         if(st===5){
                             bads.push(idx===0?"연오황":idx===1?"월오황":"일오황"); isB=true;
                         } else if(board[opposites[dir]]===5){
@@ -225,16 +330,14 @@
                         } else if(board[opposites[dir]]===myS){
                             bads.push(idx===0?"연적살":idx===1?"월적살":"일적살"); isB=true;
                         }
-                        
                         if(!isB) sc += (goodEls.includes(st)?w:w/4); else sc -= 100;
                     });
+                    if(dir === yearPaDir)  { bads.push("세파"); sc -= 50; }
+                    if(dir === monthPaDir) { bads.push("월파"); sc -= 25; }
+                    if(dir === dayPaDir)   { bads.push("일파"); sc -= 10; }
+
                     scores[dir] = Math.max(0, Math.round(sc));
                     results[dir] = { sc: Math.max(0, Math.round(sc)), b: [...new Set(bads)], stars: [bds[0][dir], bds[1][dir], bds[2][dir]] };
-                    let ts2 = timeObj[dir];
-                    shortTrip[dir] = {
-                        good: (!(ts2===5 || timeObj[opposites[dir]]===5 || ts2===myS || timeObj[opposites[dir]]===myS) && goodEls.includes(ts2)),
-                        star: ts2
-                    };
                 });
 
                 wedges.forEach(w => w.setMap(null)); wedges=[];
@@ -273,27 +376,90 @@
 
                 let h = `<h4 style="color:#1a237e; margin-top:0; border-bottom:2px solid #1a237e; padding-bottom:5px;">[방위별 상의(象意) 분석 리포트]</h4>`;
 
-                let goodS = Object.keys(shortTrip).filter(d => shortTrip[d].good);
-                h += `<div class="short-trip-section"><b style="font-size:15px; color:#c05621;">🚗 근거리 단기 외출 가이드 (시반 적용)</b><br>
-                    <p style="font-size:13px; color:#555; margin-top:5px;">입력하신 <b>${tTime}</b> 기준 시반(時盤) 상생 방향입니다.</p>`;
-                if(goodS.length > 0){
-                    goodS.forEach(d => {
-                        let st = starDB[shortTrip[d].star];
-                        h += `<div style="margin-top:8px; font-size:13px;"><b>[${d}방향]</b> ${st.loc} 방문 권장. ${st.drink} 마시기.</div>`;
-                    });
-                } else {
-                    h += `<div style="margin-top:8px; font-size:13px; color:#e53e3e;">해당 시간대에는 근거리 길방이 없습니다.</div>`;
-                }
-                h += `</div>`;
+                let nowBranchIdx = getCurrentBranchIdx(tTime);
 
-                h += `<div style="background:#e8eaf6; padding:10px; border-radius:6px; margin-bottom:14px; font-size:12.5px; border-left:4px solid #1a237e;">
-                    본명성: <b>${myS}성(${starDB[myS].n})</b> &nbsp;|&nbsp; 오행: <b>${myElement}</b><br>
-                    연반 중궁: <b>${yS}성</b> &nbsp;|&nbsp; 월반 중궁: <b>${mS}성</b> &nbsp;|&nbsp; 일반 중궁: <b>${dS}성</b> &nbsp;|&nbsp; 시반 중궁: <b>${tS}성</b>
+                h += `<div class="short-trip-section">
+                    <b style="font-size:15px; color:#c05621;">🚗 근거리 단기 외출 가이드 (시반 + 일/월/연 종합)</b>
+                    <p style="font-size:12px; color:#666; margin: 4px 0 8px 0;">
+                        ※ 시반 기준 상생 길방위 중 <b>종합점수 50% 이상(연/월/일반 흉살 없는 방위)</b>만 엄선 표시
+                    </p>`;
+
+                h += `<table class="time-table">
+                    <tr>
+                        <th style="width:14%;">지지</th><th style="width:16%;">시반성</th><th style="width:48%;">엄선된 길방 (종합 50% 이상)</th><th style="width:22%;">시반 흉방</th>
+                    </tr>`;
+
+                let isYin = tStars.isYin;
+                let dayBranch = tStars.dz % 12;
+                let hBase;
+                if ([0,3,6,9].includes(dayBranch)) { hBase = isYin ? 9 : 1; }
+                else if ([1,4,7,10].includes(dayBranch)) { hBase = isYin ? 6 : 4; }
+                else { hBase = isYin ? 3 : 7; }
+
+                for(let i=0; i<12; i++){
+                    let tTS = isYin ? (hBase - i) : (hBase + i);
+                    while(tTS <= 0) tTS += 9;
+                    while(tTS > 9) tTS -= 9;
+
+                    let tObj2 = {}, cur3 = tTS;
+                    for(let j=0; j<9; j++){ tObj2[posNames[j]]=cur3; cur3++; if(cur3>9) cur3=1; }
+
+                    let goodDirs2 = [], badDirs2 = [];
+                    posNames.forEach(dir => {
+                        if(dir === "중앙") return;
+                        let ts3 = tObj2[dir];
+                        let oppTs = tObj2[opposites[dir]];
+                        
+                        if(ts3===5 || oppTs===5 || ts3===myS || oppTs===myS){
+                            badDirs2.push(dir);
+                        } else if(goodEls.includes(ts3) && results[dir].sc >= 50){
+                            goodDirs2.push({ d: dir, sc: results[dir].sc, st: ts3 });
+                        }
+                    });
+
+                    let isNow = (i === nowBranchIdx);
+                    let starName = starDB[tTS].n.split('(')[0];
+                    let rowCls = isNow ? ' time-now' : '';
+                    let bTimeStr = branchTimeMap[i].split('(')[0];
+
+                    if(goodDirs2.length > 0){
+                        goodDirs2.sort((a,b) => b.sc - a.sc);
+                        
+                        let dirDetails = goodDirs2.map(item => {
+                            let db = starDB[item.st];
+                            let scColor = item.sc >= 90 ? '#0000ff' : (item.sc >= 60 ? '#00838f' : '#e65100');
+                            // ★ 복구: 시반 길방위에 대한 상세 음식, 음료, 장소, 행동 출력
+                            return `<div style="margin:4px 0; padding:4px 0; border-bottom:1px dashed #cbd5e0; font-size:12px;">
+                                <b style="color:#2b6cb0;">[${item.d}방] <span style="color:${scColor};">${item.sc}%</span></b><br>
+                                <span style="color:#444;">📍 <b>장소:</b> ${db.loc} 추천<br>🍽️ <b>식음료:</b> ${db.food}, ${db.drink}<br>🏃 <b>행동:</b> ${db.act}</span>
+                            </div>`;
+                        }).join('');
+                        
+                        h += `<tr class="time-good${rowCls}">
+                            <td><b>${bTimeStr}</b>${isNow?'<br><span style="color:#d32f2f;font-size:11px;">(현재)</span>':''}</td>
+                            <td>${tTS}성<br><span style="font-size:11px;color:#666;">${starName}</span></td>
+                            <td style="text-align:left;">${dirDetails}</td>
+                            <td style="color:#c53030; font-size:11.5px;">${badDirs2.join(', ')||'-'}</td>
+                        </tr>`;
+                    } else {
+                        let noGoodReason = badDirs2.length >= 6 ? '시반 흉살 다수' : '종합 50% 이상 길방 없음';
+                        h += `<tr class="time-bad${rowCls}">
+                            <td>${bTimeStr}${isNow?'<br><span style="color:#d32f2f;font-size:11px;">(현재)</span>':''}</td>
+                            <td>${tTS}성<br><span style="font-size:11px;color:#666;">${starName}</span></td>
+                            <td style="color:#888; font-size:12px;">— ${noGoodReason}</td>
+                            <td style="font-size:11.5px;">${badDirs2.join(', ')||'-'}</td>
+                        </tr>`;
+                    }
+                }
+                h += `</table></div>`;
+
+                h += `<div style="background:#e8eaf6; padding:10px; border-radius:6px; margin-bottom:14px; font-size:12.5px; border-left:4px solid #1a237e; line-height:1.6;">
+                    👤 <b>내 생년월일시 명성:</b> 연(본명성): <b>${myS}성</b> &nbsp;|&nbsp; 월명성: <b>${myM}성</b> &nbsp;|&nbsp; 일명성: <b>${myD}성</b> &nbsp;|&nbsp; 시명성: <b>${myT}성</b> (오행: <b>${myElement}</b>)<br>
+                    📅 <b>이동일 중궁(우주기운):</b> 연반: <b>${yS}성</b> &nbsp;|&nbsp; 월반: <b>${mS}성</b> &nbsp;|&nbsp; 일반: <b>${dS}성</b> &nbsp;|&nbsp; 시반: <b>${tS}성(${branchTimeMap[nowBranchIdx]})</b>
                 </div>`;
 
                 Object.keys(results).sort((a,b) => results[b].sc - results[a].sc).forEach(d => {
                     let r=results[d], cl=r.sc>=90?'#0000ff':(r.sc>=60?'#00bcd4':(r.sc>=30?'#ff9800':'#ff0000'));
-
                     let badS=r.stars[0];
                     if(r.b.some(x=>x.includes("오황"))) badS=5;
                     else if(r.b.some(x=>x.includes("연"))) badS=r.stars[0];
@@ -301,8 +467,8 @@
                     else badS=r.stars[2];
                     let badDt=starDB[badS], goodDt=starDB[r.stars[1]];
 
-                    // V5.6 심화 로직: 오행 통관법 (기운 미약 방위용)
-                    let dirStars = [r.stars[0], r.stars[1], r.stars[2], timeObj[d]];
+                    // ★ 복구: 기운 미약 방위를 위한 오행 상생상극 통관(피흉) 로직
+                    let dirStars = [r.stars[0], r.stars[1], r.stars[2]];
                     let dirElements = [...new Set(dirStars.map(s => [1].includes(s)?'수':([2,5,8].includes(s)?'토':([3,4].includes(s)?'목':([6,7].includes(s)?'금':'화')))))];
                     let remedyAdvice = "";
 
@@ -318,28 +484,21 @@
                     else if (myElement === '목' && dirElements.includes('토')) remedyAdvice = "화(火)의 기운(붉은색 포인트 의상, 따뜻한 음식 섭취)을 써서 목극토(木剋土)로 소모되는 기운을 목생화, 화생토로 부드럽게 순환시키십시오.";
                     else remedyAdvice = "해당 방위의 탁기를 중화하기 위해 출발 전 가벼운 명상과 심호흡으로 심신을 안정시키고 본명성의 길색(吉色) 옷을 입고 이동하십시오.";
 
-                    let bestT=[];
-                    if(r.sc >= 60){
-                        for(let i=0; i<12; i++){
-                            let tTS=getTimeStar(dS,`${(i*2+23)%24}:00`);
-                            let tO={}, cur2=tTS;
-                            for(let j=0; j<9; j++){tO[posNames[j]]=cur2; cur2++; if(cur2>9)cur2=1;}
-                            if(goodEls.includes(tO[d]) && tO[d]!==5 && tO[opposites[d]]!==5) bestT.push(branchTimeMap[i]);
-                        }
-                    }
-
                     h += `<div class="dir-card">
                         <div class="dir-header"><span>${d}방향</span><span style="color:${cl}">${r.sc}%</span></div>
-                        <div class="star-info-bar">연반: <b>${r.stars[0]}성(${starDB[r.stars[0]].n.split('(')[0]})</b> &nbsp;|&nbsp; 월반: <b>${r.stars[1]}성(${starDB[r.stars[1]].n.split('(')[0]})</b> &nbsp;|&nbsp; 일반: <b>${r.stars[2]}성(${starDB[r.stars[2]].n.split('(')[0]})</b></div>
+                        <div class="star-info-bar">연반: <b>${r.stars[0]}성</b> &nbsp;|&nbsp; 월반: <b>${r.stars[1]}성</b> &nbsp;|&nbsp; 일반: <b>${r.stars[2]}성</b></div>
                         <div class="score-bar-container"><div class="score-bar" style="width:${r.sc}%; background:${cl}"></div></div>`;
 
                     if(r.b.length > 0){
-                        // 대흉살 종류별 정밀 해결 법칙 생성
+                        // ★ 복구: 흉살(오황, 암검 등)에 대한 상세 경고문 복구
                         let fatalRemedy = "";
                         if (r.b.some(x => x.includes("오황"))) fatalRemedy += "<div style='margin-bottom:8px;'>🔥 <b>[오황살 화해]</b> 만물이 부패하는 극흉의 방향입니다. 흙을 밟거나 파는 행위를 절대 금하고, 날것을 피하며 푹 익힌 음식만 섭취하고 침묵을 지키십시오.</div>";
                         if (r.b.some(x => x.includes("암검"))) fatalRemedy += "<div style='margin-bottom:8px;'>⚔️ <b>[암검살 화해]</b> 타인으로부터 예기치 않은 재난이 강제로 날아옵니다. 철저히 자신을 낮추고 양보하며, 시비나 다툼을 무조건 피하고 철저한 방어 운전을 하십시오.</div>";
-                        if (r.b.some(x => x.includes("파"))) fatalRemedy += "<div style='margin-bottom:8px;'>⚡ <b>[파살 화해]</b> 계획이 깨지고 어긋납니다. 약속과 서류를 2~3번 교차 검증하고, 일정이 지연되거나 깨지더라도 분노하지 않는 마음의 여유를 가지십시오.</div>";
-                        if (r.b.some(x => x.includes("본명") || x.includes("적살"))) fatalRemedy += "<div style='margin-bottom:8px;'>📉 <b>[본명/적살 화해]</b> 본인의 기운이 꺾이고 판단력이 흐려집니다. 중요한 의사 결정은 무조건 다음으로 미루고, 육체적 과로를 피해 휴식을 취하며 비상약을 지참하십시오.</div>";
+                        if (r.b.includes("세파")) fatalRemedy += "<div style='margin-bottom:8px;'>🌍 <b>[세파(歲破) 화해]</b> 해당 연도의 파기(破氣)가 흐르는 방위로, 연간 지속되는 강한 흉기입니다. 이 방위로의 이동 자체를 최대한 자제하고, 부득이한 경우 이동 전 반드시 소금 정화 의식을 행하고 귀중품 계약·결정 등 중요한 행위를 삼가십시오.</div>";
+                        if (r.b.includes("월파")) fatalRemedy += "<div style='margin-bottom:8px;'>📅 <b>[월파(月破) 화해]</b> 해당 월의 파기가 흐르는 방위로 계획이 깨지고 분리됩니다. 이 방위 이동을 자제하고, 약속·계약·개업·이사 등 새로운 시작을 이 방위에서 하지 마십시오. 부득이하면 왕복 여정을 피하고 단방향으로만 이동하십시오.</div>";
+                        if (r.b.includes("일파")) fatalRemedy += "<div style='margin-bottom:8px;'>📆 <b>[일파(日破) 화해]</b> 당일에 한하는 파기입니다. 경미하지만 예상치 못한 변경·취소·지연이 생길 수 있으니, 중요한 약속은 재확인하고 유연한 일정을 유지하십시오.</div>";
+                        if (r.b.some(x => x.includes("본명"))) fatalRemedy += "<div style='margin-bottom:8px;'>📉 <b>[본명살 화해]</b> 본인의 기운이 해당 방위에 흡수·소진됩니다. 생명력과 판단력이 꺾이므로 중요한 의사 결정을 다음으로 미루고, 육체적 과로를 피해 충분히 휴식하며 비상약을 지참하십시오.</div>";
+                        if (r.b.some(x => x.includes("적살"))) fatalRemedy += "<div style='margin-bottom:8px;'>💥 <b>[적살(的殺) 화해]</b> 반대 방위에서 본명성을 겨냥해 날아오는 외부 충격입니다. 구설수, 타인과의 충돌, 갑작스러운 손실이 발생합니다. 낮은 자세를 유지하고, 주도적으로 나서거나 이목을 끄는 행동을 삼가십시오.</div>";
 
                         h += `<div class="bad-section"><b>⚠️ 흉살 경고:</b>
                             <ul class="bad-list">${r.b.map(b => `<li>${badEffectsInfo[b]}</li>`).join('')}</ul>
@@ -350,12 +509,12 @@
                             </div>
                         </div>`;
                     } else if(r.sc >= 60){
+                        // ★ 복구: 종합 길방위의 장소, 음식, 색상 등 구성상의 완벽 복구
                         h += `<div class="good-section">
                             <b style="font-size:15px;">✨ 정통 길방 취기법 (${goodDt.n})</b>
                             <div style="margin: 8px 0;">${goodDt.luck.split(', ').map(l=>`<span class="luck-tag">${l}</span>`).join('')}</div>
                             <div class="info-grid">
                                 <div class="info-row"><div class="info-label">⏱️ 체류</div><div class="info-data"><span class="badge">${goodDt.duration}</span></div></div>
-                                <div class="info-row"><div class="info-label">🚀 출발</div><div class="info-data">${bestT.length>0?'추천: '+bestT.slice(0,3).join(', '):'낮 시간 선택'}</div></div>
                                 <div class="info-row"><div class="info-label">📍 장소</div><div class="info-data">${goodDt.loc}</div></div>
                                 <div class="info-row"><div class="info-label">🍽️ 식음</div><div class="info-data">${goodDt.food} / ${goodDt.drink}</div></div>
                                 <div class="info-row"><div class="info-label">👕 의상</div><div class="info-data"><b>${goodDt.goodColor}</b> 착용</div></div>
@@ -365,18 +524,16 @@
                             <div class="highlight-box">🏃 <b>핵심 행동:</b> ${goodDt.act}</div>
                         </div>`;
                     } else {
+                        // ★ 복구: 기운 미약 방위의 오행 화해(피흉법) 복구
                         h += `<div class="weak-section"><b>⚠️ 기운 미약:</b> 흉살은 없으나 본명성과 상극인 방위입니다.<div class="remedy-weak-box">🛡️ <b>오행 화해(化解) 피흉법:</b><br>${remedyAdvice}</div></div>`;
                     }
                     h += `</div>`;
                 });
 
                 document.getElementById('result-panel').innerHTML = h;
-            } catch(e) {
-                console.error(e);
-                alert("오류 발생: " + e.message);
-            }
+            } catch(e) { console.error(e); alert("오류 발생: " + e.message); }
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=구글지도API키&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAamEQotxhdSuayKAoEFN--sDsyAqt42B8&callback=initMapCallback" async defer></script>
 </body>
 </html>
