@@ -467,6 +467,66 @@
                     📅 <b>이동일 중궁(우주기운):</b> 연반: <b>${yS}성</b> &nbsp;|&nbsp; 월반: <b>${mS}성</b> &nbsp;|&nbsp; 일반: <b>${dS}성</b> &nbsp;|&nbsp; 시반: <b>${tS}성(${branchTimeMap[nowBranchIdx]})</b>
                 </div>`;
 
+                let tPaDir = branchDir8[(nowBranchIdx + 6) % 12];
+                function calcIndivScore(board, paDir) {
+                    let r = {};
+                    posNames.forEach(dir => {
+                        if (dir === "중앙") return;
+                        let st = board[dir];
+                        let isB = false; let bads = []; let sc = 0;
+                        if(st===5) { bads.push("오황"); isB=true; }
+                        else if(board[opposites[dir]]===5) { bads.push("암검"); isB=true; }
+                        else if(st===myS) { bads.push("본명"); isB=true; }
+                        else if(board[opposites[dir]]===myS) { bads.push("적살"); isB=true; }
+                        if(dir===paDir) { bads.push("파"); isB=true; }
+
+                        if(!isB) {
+                            sc = goodEls.includes(st) ? 100 : 25;
+                        } else {
+                            sc = 0;
+                        }
+                        r[dir] = { sc: sc, bads: bads, st: st };
+                    });
+                    return r;
+                }
+
+                let yIndiv = calcIndivScore(bds[0], yearPaDir);
+                let mIndiv = calcIndivScore(bds[1], monthPaDir);
+                let dIndiv = calcIndivScore(bds[2], dayPaDir);
+                let tIndiv = calcIndivScore(timeObj, tPaDir);
+
+                h += `<div class="short-trip-section" style="background-color: #f8f9fa; border-color: #cfd8dc;">
+                    <b style="font-size:15px; color:#283593;">📊 기간별 (연·월·일·시) 독립 길흉 점수</b>
+                    <p style="font-size:12px; color:#666; margin: 4px 0 8px 0;">
+                        ※ 1년(연반), 1달(월반), 당일(일반), 현재(시반) 각각의 방위별 독립 점수와 흉살 여부입니다.
+                    </p>
+                    <table class="time-table">
+                        <tr>
+                            <th style="width:12%;">방위</th>
+                            <th style="width:22%;">연반(1년)</th>
+                            <th style="width:22%;">월반(1달)</th>
+                            <th style="width:22%;">일반(당일)</th>
+                            <th style="width:22%;">시반(현재)</th>
+                        </tr>`;
+
+                const displayOrder = ["북", "북동", "동", "동남", "남", "남서", "서", "서북"];
+                displayOrder.forEach(dir => {
+                    let renderCell = (data) => {
+                        let color = data.sc >= 80 ? '#0000ff' : (data.sc >= 50 ? '#00bcd4' : (data.sc > 0 ? '#ff9800' : '#e53935'));
+                        let badStr = data.bads.length > 0 ? `<br><span style="font-size:11.5px; color:#c53030;">(${data.bads.join(', ')})</span>` : '';
+                        let bg = data.sc >= 80 ? '#f0fff4' : (data.sc === 0 ? '#fff5f5' : '#ffffff');
+                        return `<td style="color:${color}; font-weight:bold; background-color:${bg};">${data.sc}%${badStr}</td>`;
+                    };
+                    h += `<tr>
+                        <td style="font-weight:bold; background:#e8eaf6; color:#1a237e;">${dir}</td>
+                        ${renderCell(yIndiv[dir])}
+                        ${renderCell(mIndiv[dir])}
+                        ${renderCell(dIndiv[dir])}
+                        ${renderCell(tIndiv[dir])}
+                    </tr>`;
+                });
+                h += `</table></div>`;
+
                 Object.keys(results).sort((a,b) => results[b].sc - results[a].sc).forEach(d => {
                     let r=results[d], cl=r.sc>=90?'#0000ff':(r.sc>=60?'#00bcd4':(r.sc>=30?'#ff9800':'#ff0000'));
                     
